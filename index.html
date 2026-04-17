@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Arkanoid Galaxy - @abmartes</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#050509">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body { background: #050509; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; touch-action: none; }
+        #game-container { position: relative; }
+        canvas { background: #000; border: 3px solid #00f2ff; border-radius: 10px; max-width: 95vw; max-height: 80vh; }
+        #hud { position: absolute; top: 20px; left: 20px; color: #00f2ff; font-family: 'Press Start 2P', cursive; font-size: 12px; }
+        #restartBtn { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 15px; font-family: 'Press Start 2P', cursive; background: #ff0080; color: white; border: 4px solid #fff; cursor: pointer; z-index: 100; }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="hud">SCORE: <span id="score">0</span></div>
+        <button id="restartBtn" onclick="resetGame()">JOGAR DE NOVO</button>
+        <canvas id="gameCanvas" width="550" height="400"></canvas>
+    </div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const scoreElement = document.getElementById("score");
+        const restartBtn = document.getElementById("restartBtn");
+
+        let gameActive = true, score = 0, x, y, dx, dy, paddleX, bricks;
+        const ballRadius = 7, paddleHeight = 12, paddleWidth = 90;
+        const brickRowCount = 4, brickColumnCount = 7, brickWidth = 65, brickHeight = 18;
+
+        function initVariables() {
+            score = 0; scoreElement.innerHTML = score;
+            x = canvas.width / 2; y = canvas.height - 60;
+            dx = 3.5; dy = -3.5;
+            paddleX = (canvas.width - paddleWidth) / 2;
+            gameActive = true; restartBtn.style.display = "none";
+            bricks = [];
+            for(let c=0; c<brickColumnCount; c++) {
+                bricks[c] = [];
+                for(let r=0; r<brickRowCount; r++) bricks[c][r] = { x: 0, y: 0, status: 1 };
+            }
+        }
+
+        function draw() {
+            if (!gameActive) return;
+            ctx.fillStyle = "rgba(5, 5, 15, 0.3)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.font = "10px 'Press Start 2P'";
+            ctx.fillStyle = "#ffff00";
+            ctx.textAlign = "center";
+            ctx.fillText("@abmartes", canvas.width / 2, canvas.height - 10);
+
+            for(let c=0; c<brickColumnCount; c++) {
+                for(let r=0; r<brickRowCount; r++) {
+                    if(bricks[c][r].status == 1) {
+                        let bX = (c*(brickWidth+8))+25;
+                        let bY = (r*(brickHeight+8))+60;
+                        bricks[c][r].x = bX; bricks[c][r].y = bY;
+                        ctx.fillStyle = "#ff0080";
+                        ctx.beginPath(); ctx.roundRect(bX, bY, brickWidth, brickHeight, 4); ctx.fill();
+                    }
+                }
+            }
+
+            ctx.beginPath(); ctx.arc(x, y, ballRadius, 0, Math.PI*2);
+            ctx.fillStyle = "#fff"; ctx.shadowBlur = 10; ctx.shadowColor = "#00f2ff";
+            ctx.fill(); ctx.shadowBlur = 0;
+
+            ctx.fillStyle = "#00f2ff";
+            ctx.beginPath(); ctx.roundRect(paddleX, canvas.height - 45, paddleWidth, paddleHeight, 5); ctx.fill();
+
+            if(x + dx > canvas.width-ballRadius || x + dx < ballRadius) dx = -dx;
+            if(y + dy < ballRadius) dy = -dy;
+            else if(y + dy > canvas.height - 45) {
+                if(x > paddleX && x < paddleX + paddleWidth) {
+                    dy = -dy;
+                    dx = 8 * ((x - (paddleX + paddleWidth/2)) / paddleWidth);
+                } else if(y > canvas.height) {
+                    gameActive = false; restartBtn.style.display = "block";
+                }
+            }
+
+            for(let c=0; c<brickColumnCount; c++) {
+                for(let r=0; r<brickRowCount; r++) {
+                    let b = bricks[c][r];
+                    if(b.status == 1 && x > b.x && x < b.x+brickWidth && y > b.y && y < b.y+brickHeight) {
+                        dy = -dy; b.status = 0; score += 10; scoreElement.innerHTML = score;
+                    }
+                }
+            }
+
+            x += dx; y += dy;
+            requestAnimationFrame(draw);
+        }
+
+        canvas.addEventListener("touchmove", (e) => {
+            e.preventDefault();
+            let rect = canvas.getBoundingClientRect();
+            let relativeX = e.touches[0].clientX - rect.left;
+            paddleX = relativeX - paddleWidth / 2;
+        }, {passive: false});
+
+        function resetGame() { initVariables(); draw(); }
+        initVariables(); draw();
+    </script>
+</body>
+</html>
