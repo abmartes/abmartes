@@ -1,10 +1,7 @@
-const CACHE_NAME = 'mangue-v1';
-const assets = ['./', './index.html', './manifest.json'];
-
+const CACHE = 'mangue-parallax-v1';
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(assets)));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', './index.html', './manifest.json'])));
 });
-
 self.addEventListener('fetch', e => {
-  e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
 });
