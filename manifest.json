@@ -1,16 +1,17 @@
 {
-  "name": "Arkanoid @abmartes",
+  "name": "Arkanoid Galaxy",
   "short_name": "Arkanoid",
+  "description": "Jogo Arkanoid estilo retro espacial",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#050509",
-  "theme_color": "#00f2ff",
-  "orientation": "portrait",
+  "theme_color": "#050509",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/5690/5690559.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/103/103085.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
